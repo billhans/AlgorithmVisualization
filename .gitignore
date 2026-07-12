@@ -8,6 +8,9 @@ desktop.ini
 .idea/
 *.swp
 
+# ZCode 工具本地文件
+.zcode/
+
 # 依赖与构建（本项目暂无，预留）
 node_modules/
 dist/
