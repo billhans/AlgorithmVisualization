@@ -3,33 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>完全背包 · 可视化教学</title>
+<title>毕老师 · 算法可视化</title>
 <style>
 /* ============================================================
-   配色变量（深色现代风）
+   配色变量（与背包子页统一的深色现代风）
    ============================================================ */
 :root{
   --bg:#0f172a;
-  --bg-grad-1:#0f172a;
-  --bg-grad-2:#111c34;
   --card:#1e293b;
   --card-2:#243349;
   --border:#334155;
   --text:#e2e8f0;
   --text-dim:#94a3b8;
   --text-mute:#64748b;
-
-  /* 高亮语义色 */
-  --cur:#a855f7;     /* 紫色：当前正在更新的格子 */
-  --cur-bg:#3b1a5e;
-  --pick:#f59e0b;    /* 橙色：被读取的「选」依赖 */
-  --pick-bg:#3a2a0a;
-  --skip:#38bdf8;    /* 蓝色：被读取的「不选」依赖 */
-  --skip-bg:#0c2a3d;
-  --done:#22c55e;    /* 绿色：最终答案 */
-  --done-bg:#0f3322;
-
   --shadow:0 8px 30px rgba(0,0,0,.35);
+
+  /* 模块强调色 */
+  --c-sort:#f59e0b;
+  --c-basic:#38bdf8;
+  --c-search:#14b8a6;
+  --c-dp:#a855f7;
+  --c-graph:#22c55e;
+  --c-string:#ec4899;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -42,861 +37,381 @@ body{
   min-height:100vh;
   line-height:1.5;
 }
-.mono{font-family:"Cascadia Code","Consolas","Courier New",monospace}
+a{color:inherit;text-decoration:none}
 
 /* ============================================================
-   顶部标题区
+   顶部固定导航
    ============================================================ */
-header{
-  padding:18px 24px 12px;
-  border-bottom:1px solid var(--border);
-  background:rgba(15,23,42,.6);
-  backdrop-filter:blur(8px);
+header.nav{
   position:sticky;top:0;z-index:50;
+  padding:14px 28px;
+  background:rgba(15,23,42,.6);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
 }
-.title-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.5px}
-.subtitle{color:var(--text-dim);font-size:13px}
-
-/* 模式切换 Tab */
-.mode-tabs{display:flex;gap:6px;background:var(--card);padding:5px;border-radius:12px;border:1px solid var(--border)}
-.mode-tab{
-  padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
-  border:none;background:transparent;color:var(--text-dim);transition:.18s;
-  font-family:inherit;
+.logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:17px;letter-spacing:.5px}
+.logo .mark{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;box-shadow:0 6px 18px rgba(168,85,247,.45);
 }
-.mode-tab.active{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 4px 12px rgba(168,85,247,.4)}
-.mode-tab:hover:not(.active){color:var(--text);background:var(--card-2)}
-
-/* 公式区 */
-.formula-box{
-  margin-top:12px;background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:12px 16px;display:flex;flex-wrap:wrap;gap:24px;align-items:center;
+.nav-links{display:flex;gap:4px;align-items:center}
+.nav-links a{
+  padding:8px 14px;border-radius:9px;font-size:14px;color:var(--text-dim);
+  transition:.16s;cursor:pointer;
 }
-.formula-block{display:flex;flex-direction:column;gap:4px;min-width:0}
-.formula-label{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px}
-.formula{font-size:15px;color:var(--text);white-space:nowrap;overflow-x:auto}
-.formula .h-cur{color:#c084fc;font-weight:700}
-.formula .h-pick{color:#fbbf24;font-weight:700}
-.formula .h-skip{color:#7dd3fc;font-weight:700}
-.formula-note{font-size:12px;color:var(--text-dim)}
+.nav-links a:hover{color:var(--text);background:var(--card)}
+.nav-links a.active{color:#fff;background:var(--card-2)}
+.nav-toggle{display:none;background:none;border:1px solid var(--border);color:var(--text);
+  border-radius:9px;padding:8px 12px;cursor:pointer;font-size:16px}
 
 /* ============================================================
-   主体两栏布局
+   Hero 区
    ============================================================ */
-.layout{
-  display:grid;
-  grid-template-columns:300px 1fr;
-  gap:18px;padding:18px 24px;
-  align-items:start;
+.hero{
+  max-width:980px;margin:0 auto;padding:84px 28px 56px;text-align:center;
 }
-@media(max-width:920px){.layout{grid-template-columns:1fr}}
-
-/* 左侧控制面板 */
-.panel{
-  background:var(--card);border:1px solid var(--border);border-radius:14px;
-  padding:16px;box-shadow:var(--shadow);position:sticky;top:84px;
+.hero h1{
+  font-size:clamp(34px,6vw,58px);margin:0 0 18px;font-weight:800;letter-spacing:1px;
+  background:linear-gradient(135deg,#fff 0%,#c4b5fd 55%,#a855f7 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
-.panel h3{margin:0 0 10px;font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center}
-.panel h3 + h3{margin-top:18px}
-
-/* 物品编辑列表 */
-.items-list{display:flex;flex-direction:column;gap:6px}
-.item-row{display:grid;grid-template-columns:22px 1fr 1fr 26px;gap:6px;align-items:center}
-.item-idx{font-size:11px;color:var(--text-mute);text-align:center;font-weight:700}
-.item-input{
-  width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
-  border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit;
-}
-.item-input:focus{outline:none;border-color:#7c3aed}
-.item-del{background:transparent;border:none;color:var(--text-mute);cursor:pointer;font-size:16px;border-radius:6px;padding:2px}
-.item-del:hover{color:#f87171;background:rgba(248,113,113,.1)}
-.item-head{display:grid;grid-template-columns:22px 1fr 1fr 26px;gap:6px;font-size:10px;color:var(--text-mute);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
-.item-head span:nth-child(2),.item-head span:nth-child(3){text-align:center}
-
-.btn-add{
-  margin-top:8px;width:100%;background:transparent;border:1px dashed var(--border);
-  color:var(--text-dim);padding:8px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:12px;
-}
-.btn-add:hover{border-color:#7c3aed;color:#c084fc}
-
-/* 容量输入 */
-.capacity-row{display:flex;align-items:center;gap:10px}
-.capacity-row label{font-size:13px;color:var(--text-dim)}
-
-/* 控制按钮 */
-.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hero p.lead{font-size:clamp(15px,2.2vw,19px);color:var(--text-dim);max-width:640px;margin:0 auto 32px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .btn{
-  background:var(--card-2);border:1px solid var(--border);color:var(--text);
-  padding:10px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;
-  display:flex;align-items:center;justify-content:center;gap:6px;transition:.15s;font-weight:600;
+  font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;
+  padding:13px 28px;border-radius:11px;transition:.16s;border:none;display:inline-flex;align-items:center;gap:8px;
 }
-.btn:hover{border-color:#475569;background:#334b6b}
-.btn:active{transform:translateY(1px)}
-.btn.primary{grid-column:span 2;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none}
-.btn.primary:hover{filter:brightness(1.1)}
-
-/* 速度滑块 */
-.speed-row{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--text-dim)}
-input[type=range]{
-  -webkit-appearance:none;appearance:none;height:5px;background:var(--bg);border-radius:3px;flex:1;
-}
-input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-  background:#a855f7;cursor:pointer;border:2px solid #fff;
-}
-.speed-val{font-weight:700;color:var(--text);min-width:34px;text-align:right}
-
-/* 图例 */
-.legend{display:flex;flex-direction:column;gap:6px;margin-top:6px}
-.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim)}
-.legend-dot{width:14px;height:14px;border-radius:4px;flex-shrink:0}
+.btn-primary{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 8px 22px rgba(168,85,247,.4)}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-2px)}
+.btn-ghost{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:#7c3aed;color:#c4b5fd}
 
 /* ============================================================
-   右侧可视化区
+   数据统计条
    ============================================================ */
-.viz{display:flex;flex-direction:column;gap:16px;min-width:0}
-.viz-card{
-  background:var(--card);border:1px solid var(--border);border-radius:14px;
-  padding:16px;box-shadow:var(--shadow);
+.stats{
+  max-width:880px;margin:0 auto;padding:0 28px 72px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
 }
-.viz-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.viz-card-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
-.viz-card-title .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--card-2);color:var(--text-dim)}
-.badge-dir{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
-.badge-dir.forward{background:var(--pick-bg);color:#fbbf24;border:1px solid #7a5a1a}
-.badge-dir.backward{background:var(--skip-bg);color:#7dd3fc;border:1px solid #1a4a6a}
-
-.tables-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:1100px){.tables-wrap{grid-template-columns:1fr}}
-
-/* 表格滚动容器 */
-.table-scroll{overflow:auto;max-width:100%}
-
-/* 通用表格样式 */
-.dp-table{border-collapse:separate;border-spacing:3px;font-family:"Cascadia Code","Consolas",monospace}
-.dp-table th{
-  font-size:10px;color:var(--text-mute);font-weight:600;padding:3px 4px;
-  min-width:38px;text-align:center;
+.stat{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 18px;text-align:center;
+  box-shadow:var(--shadow);
 }
-.dp-table th.row-h{min-width:auto;padding-right:6px;text-align:right}
-.dp-table td{
-  text-align:center;font-size:13px;min-width:38px;height:34px;
-  border-radius:5px;background:#16233a;border:1px solid #243349;
-  transition:background .12s,color .12s,transform .12s,box-shadow .12s;
-  color:var(--text);
+.stat .num{font-size:34px;font-weight:800;background:linear-gradient(135deg,#fff,#a855f7);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat .lbl{font-size:13px;color:var(--text-dim);margin-top:6px;letter-spacing:.5px}
+
+/* ============================================================
+   模块卡片网格（核心区）
+   ============================================================ */
+section{max-width:1140px;margin:0 auto;padding:0 28px}
+.section-head{text-align:center;margin-bottom:42px}
+.section-head .kicker{font-size:13px;color:#a855f7;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.section-head h2{font-size:clamp(26px,4vw,36px);margin:8px 0 0;font-weight:800}
+.section-head p{color:var(--text-dim);margin:12px auto 0;max-width:560px;font-size:15px}
+
+.grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-bottom:88px;
 }
-.dp-table td.empty{background:transparent;border:none}
-.dp-table td.dim{color:var(--text-mute)}
-.dp-table td.cur{
-  background:var(--cur-bg);color:#e9d5ff;border-color:var(--cur);
-  box-shadow:0 0 0 2px var(--cur),0 0 14px rgba(168,85,247,.55);transform:scale(1.06);font-weight:700;z-index:2;position:relative;
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px 24px;
+  box-shadow:var(--shadow);transition:transform .2s,border-color .2s,box-shadow .2s;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
 }
-.dp-table td.pick{background:var(--pick-bg);color:#fde68a;border-color:var(--pick);box-shadow:0 0 10px rgba(245,158,11,.4)}
-.dp-table td.skip{background:var(--skip-bg);color:#bae6fd;border-color:var(--skip);box-shadow:0 0 10px rgba(56,189,248,.4)}
-.dp-table td.pick.skip{background:linear-gradient(135deg,var(--pick-bg),var(--skip-bg));}
-.dp-table td.done{background:var(--done-bg);color:#86efac;border-color:var(--done)}
-
-/* 一维表特殊：扫描条 */
-.scan-bar-wrap{position:relative}
-.scan-bar{
-  position:absolute;top:0;bottom:0;width:44px;border-radius:6px;
-  background:linear-gradient(180deg,rgba(168,85,247,.0),rgba(168,85,247,.18),rgba(168,85,247,.0));
-  border-left:2px dashed rgba(168,85,247,.6);border-right:2px dashed rgba(168,85,247,.6);
-  pointer-events:none;transition:left .25s ease, display .1s;display:none;
+.card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:4px;
+  background:var(--accent);opacity:.9;
 }
-
-/* 箭头层 */
-.arrow-layer{position:absolute;inset:0;pointer-events:none;z-index:3}
-.arrow-layer svg{width:100%;height:100%;position:absolute;inset:0}
-.viz-card{position:relative}
-
-/* 步骤说明栏 */
-.explain{
-  background:var(--card);border:1px solid var(--border);border-radius:14px;
-  padding:16px;box-shadow:var(--shadow);min-height:90px;
+.card:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.card .ico{
+  width:58px;height:58px;border-radius:15px;display:flex;align-items:center;justify-content:center;
+  font-size:28px;background:color-mix(in srgb,var(--accent) 16%,transparent);
+  border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);margin-bottom:18px;
 }
-.explain-title{font-size:12px;color:var(--text-mute);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.step-counter{font-size:13px;color:var(--text)}
-.explain-body{font-size:14px;line-height:1.7}
-.explain-body .mono{color:#c084fc;font-weight:600}
-.explain-body .pick-c{color:#fbbf24;font-weight:600}
-.explain-body .skip-c{color:#7dd3fc;font-weight:600}
-.explain-body .chosen{color:#86efac;font-weight:700}
-.explain-body .rejected{color:#f87171;font-weight:700}
+.card h3{font-size:20px;margin:0 0 8px;font-weight:700}
+.card .desc{color:var(--text-dim);font-size:14px;flex:1;margin-bottom:18px}
+.card .meta{display:flex;align-items:center;justify-content:space-between}
+.badge{
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.5px;
+}
+.badge.online{background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(34,197,94,.4)}
+.badge.soon{background:rgba(148,163,184,.12);color:var(--text-dim);border:1px solid var(--border)}
+.card-link{
+  font-size:14px;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:4px;cursor:pointer;
+  background:none;border:none;font-family:inherit;padding:0;
+}
+.card-link:hover{gap:8px;transition:gap .15s}
 
-.progress-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:10px;overflow:hidden}
-.progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);width:0;transition:width .2s}
+/* ============================================================
+   特性介绍区
+   ============================================================ */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-bottom:88px}
+.feature{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:var(--shadow);
+}
+.feature .f-ico{font-size:28px;margin-bottom:12px}
+.feature h4{margin:0 0 8px;font-size:17px;font-weight:700}
+.feature p{margin:0;color:var(--text-dim);font-size:14px}
 
-/* 0 值显示为减号，更清爽（可选，这里保持 0） */
-.dp-table td.zero{color:var(--text-mute)}
+/* ============================================================
+   页脚
+   ============================================================ */
+footer{
+  border-top:1px solid var(--border);padding:30px 28px;text-align:center;
+  color:var(--text-mute);font-size:13px;
+}
+footer a{color:var(--text-dim)}
+footer a:hover{color:#c4b5fd}
 
-/* footer 提示 */
-.shortcuts{font-size:11px;color:var(--text-mute);text-align:center;padding:6px 0 18px}
-.shortcuts kbd{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:monospace;font-size:11px;margin:0 2px}
+/* ============================================================
+   「敬请期待」Modal
+   ============================================================ */
+.modal-mask{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;z-index:100;padding:20px;
+}
+.modal-mask.show{display:flex}
+.modal{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;padding:34px 30px;
+  max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);
+  animation:pop .22s ease;
+}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal .m-ico{font-size:46px;margin-bottom:14px}
+.modal h3{margin:0 0 10px;font-size:21px}
+.modal p{color:var(--text-dim);font-size:14px;margin:0 0 22px}
+.modal .btn{width:100%;justify-content:center}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media(max-width:900px){
+  .grid,.features,.stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:680px){
+  .nav-links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;
+    background:rgba(15,23,42,.97);padding:12px;border-bottom:1px solid var(--border);gap:2px}
+  .nav-links.open{display:flex}
+  .nav-links a{padding:12px 16px}
+  .nav-toggle{display:block}
+  .hero{padding-top:56px}
+  .grid,.features,.stats{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
-<!-- ===================== 顶部 ===================== -->
-<header>
-  <div class="title-row">
-    <h1>🎒 完全背包 · 可视化教学</h1>
-    <div class="mode-tabs">
-      <button class="mode-tab active" data-mode="complete">完全背包</button>
-      <button class="mode-tab" data-mode="zeroOne">0/1 背包</button>
-    </div>
-    <span class="subtitle">观察「正序 vs 逆序」与「同行左侧 vs 左上」如何决定物品能否重复使用</span>
+<!-- ===================== 顶部导航 ===================== -->
+<header class="nav">
+  <div class="logo">
+    <span class="mark">毕</span>
+    <span>毕老师 · 算法可视化</span>
   </div>
-
-  <div class="formula-box">
-    <div class="formula-block">
-      <span class="formula-label" id="fLabel">二维状态转移</span>
-      <span class="formula mono" id="f2d"></span>
-    </div>
-    <div class="formula-block">
-      <span class="formula-label">一维状态转移（滚动数组）</span>
-      <span class="formula mono" id="f1d"></span>
-    </div>
-    <div class="formula-block">
-      <span class="formula-label">内层 j 扫描方向</span>
-      <span class="formula-note mono" id="fDir"></span>
-    </div>
-  </div>
+  <button class="nav-toggle" id="navToggle" aria-label="菜单">☰</button>
+  <nav class="nav-links" id="navLinks">
+    <a href="#home" class="active">首页</a>
+    <a href="#modules" data-soon>排序算法</a>
+    <a href="#modules" data-soon>基础算法</a>
+    <a href="#modules" data-soon>搜索算法</a>
+    <a href="dp/complete-knapsack.html">动态规划</a>
+    <a href="#modules" data-soon>图论算法</a>
+    <a href="#modules" data-soon>字符串算法</a>
+  </nav>
 </header>
 
-<!-- ===================== 主体 ===================== -->
-<div class="layout">
+<!-- ===================== Hero ===================== -->
+<section class="hero" id="home">
+  <h1>让算法 · 看得见</h1>
+  <p class="lead">通过逐帧动画与双表对照可视化，把抽象的状态转移变成眼前可见的过程。
+     适合学生、教师与自学开发者的算法学习工具。</p>
+  <div class="hero-cta">
+    <a href="#modules" class="btn btn-primary">🚀 开始学习</a>
+    <a href="dp/complete-knapsack.html" class="btn btn-ghost">🎒 进入动态规划</a>
+  </div>
+</section>
 
-  <!-- 左侧控制面板 -->
-  <aside class="panel">
-    <h3>物品列表 <span style="font-weight:400;color:var(--text-mute);text-transform:none">重 / 值</span></h3>
-    <div class="item-head"><span></span><span>重量 w</span><span>价值 v</span><span></span></div>
-    <div class="items-list" id="itemsList"></div>
-    <button class="btn-add" id="btnAddItem">＋ 添加物品</button>
-
-    <h3>背包容量</h3>
-    <div class="capacity-row">
-      <label>W =</label>
-      <input type="number" class="item-input" id="capacityInput" value="7" min="1" max="20" style="max-width:80px">
-    </div>
-
-    <h3>播放控制</h3>
-    <div class="controls">
-      <button class="btn" id="btnPrev" title="上一步">⏮ 上一步</button>
-      <button class="btn" id="btnNext" title="下一步">下一步 ⏭</button>
-      <button class="btn primary" id="btnPlay">▶ 播放</button>
-      <button class="btn" id="btnReset" title="重置">🔁 重置</button>
-    </div>
-    <div class="speed-row">
-      <span>速度</span>
-      <input type="range" id="speed" min="0.3" max="3" step="0.1" value="1">
-      <span class="speed-val mono" id="speedVal">1.0×</span>
-    </div>
-
-    <h3>颜色图例</h3>
-    <div class="legend">
-      <div class="legend-item"><span class="legend-dot" style="background:var(--cur-bg);border:1px solid var(--cur)"></span>当前正在更新的格子</div>
-      <div class="legend-item"><span class="legend-dot" style="background:var(--pick-bg);border:1px solid var(--pick)"></span>「选」依赖：完全=同行左 / 0/1=左上</div>
-      <div class="legend-item"><span class="legend-dot" style="background:var(--skip-bg);border:1px solid var(--skip)"></span>「不选」依赖：上一行同列</div>
-    </div>
-  </aside>
-
-  <!-- 右侧可视化 -->
-  <main class="viz">
-
-    <div class="tables-wrap">
-      <!-- 二维表 -->
-      <div class="viz-card" id="card2d">
-        <div class="viz-card-head">
-          <div class="viz-card-title">二维 DP 表格 <span class="tag">dp[i][j]</span></div>
-        </div>
-        <div class="table-scroll">
-          <table class="dp-table" id="table2d"></table>
-        </div>
-        <div class="arrow-layer" id="arrows2d"><svg></svg></div>
-      </div>
-
-      <!-- 一维表 -->
-      <div class="viz-card" id="card1d">
-        <div class="viz-card-head">
-          <div class="viz-card-title">一维 DP 表格 <span class="tag">dp[j]</span></div>
-          <div id="dirBadge"></div>
-        </div>
-        <div class="table-scroll scan-bar-wrap" id="scroll1d">
-          <table class="dp-table" id="table1d"></table>
-          <div class="scan-bar" id="scanBar"></div>
-        </div>
-        <div class="arrow-layer" id="arrows1d"><svg></svg></div>
-      </div>
-    </div>
-
-    <!-- 步骤说明 -->
-    <div class="explain">
-      <div class="explain-title">
-        <span>步骤说明</span>
-        <span class="step-counter" id="stepCounter">—</span>
-      </div>
-      <div class="explain-body" id="explainBody">点击「播放」或「下一步」开始演示。可切换上方模式，对比完全背包与 0/1 背包的差异。</div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    </div>
-
-  </main>
+<!-- ===================== 数据统计 ===================== -->
+<div class="stats">
+  <div class="stat"><div class="num">6</div><div class="lbl">大算法模块</div></div>
+  <div class="stat"><div class="num">实时</div><div class="lbl">逐帧可视化</div></div>
+  <div class="stat"><div class="num">交互</div><div class="lbl">可调速度 / 步进</div></div>
 </div>
 
-<div class="shortcuts">
-  快捷键：<kbd>←</kbd> 上一步　<kbd>→</kbd> 下一步　<kbd>空格</kbd> 播放/暂停　<kbd>R</kbd> 重置　<kbd>M</kbd> 切换模式
+<!-- ===================== 模块卡片 ===================== -->
+<section id="modules">
+  <div class="section-head">
+    <div class="kicker">Modules</div>
+    <h2>六大算法模块</h2>
+    <p>覆盖计算机科学中最核心的算法领域，点击已上线模块即可开始可视化学习。</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- 排序算法 -->
+    <div class="card" style="--accent:var(--c-sort)">
+      <div class="ico">🔀</div>
+      <h3>排序算法</h3>
+      <p class="desc">冒泡、选择、插入、快排、归并 —— 直观对比各排序算法的交换与比较过程。</p>
+      <div class="meta">
+        <span class="badge soon">敬请期待</span>
+        <button class="card-link" data-soon>即将上线 →</button>
+      </div>
+    </div>
+
+    <!-- 基础算法 -->
+    <div class="card" style="--accent:var(--c-basic)">
+      <div class="ico">🧱</div>
+      <h3>基础算法</h3>
+      <p class="desc">枚举、递归、分治、前缀和、双指针 —— 打牢算法基本功的可视化练习场。</p>
+      <div class="meta">
+        <span class="badge soon">敬请期待</span>
+        <button class="card-link" data-soon>即将上线 →</button>
+      </div>
+    </div>
+
+    <!-- 搜索算法 -->
+    <div class="card" style="--accent:var(--c-search)">
+      <div class="ico">🔍</div>
+      <h3>搜索算法</h3>
+      <p class="desc">二分查找、BFS、DFS、回溯 —— 在网格与树形结构中观察搜索的展开顺序。</p>
+      <div class="meta">
+        <span class="badge soon">敬请期待</span>
+        <button class="card-link" data-soon>即将上线 →</button>
+      </div>
+    </div>
+
+    <!-- 动态规划（已上线） -->
+    <a class="card" href="dp/complete-knapsack.html" style="--accent:var(--c-dp);text-decoration:none;color:inherit">
+      <div class="ico">🎒</div>
+      <h3>动态规划</h3>
+      <p class="desc">0/1 背包、完全背包 —— 二维与一维 DP 同屏对照，看懂状态转移的每一步。</p>
+      <div class="meta">
+        <span class="badge online">已上线 ✅</span>
+        <span class="card-link">进入学习 →</span>
+      </div>
+    </a>
+
+    <!-- 图论算法 -->
+    <div class="card" style="--accent:var(--c-graph)">
+      <div class="ico">🕸️</div>
+      <h3>图论算法</h3>
+      <p class="desc">最短路、最小生成树、拓扑排序 —— 在节点与边上可视化图算法的运行轨迹。</p>
+      <div class="meta">
+        <span class="badge soon">敬请期待</span>
+        <button class="card-link" data-soon>即将上线 →</button>
+      </div>
+    </div>
+
+    <!-- 字符串算法 -->
+    <div class="card" style="--accent:var(--c-string)">
+      <div class="ico">🔤</div>
+      <h3>字符串算法</h3>
+      <p class="desc">KMP、字典树、哈希 —— 字符匹配过程的逐字符可视化讲解。</p>
+      <div class="meta">
+        <span class="badge soon">敬请期待</span>
+        <button class="card-link" data-soon>即将上线 →</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 特性介绍 ===================== -->
+<section>
+  <div class="section-head">
+    <div class="kicker">Features</div>
+    <h2>为什么这样学算法</h2>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="f-ico">🎞️</div>
+      <h4>逐帧动画</h4>
+      <p>把 DP 求解过程预计算为快照序列，可单步前进 / 后退，任意回看每一格如何被填入。</p>
+    </div>
+    <div class="feature">
+      <div class="f-ico">📐</div>
+      <h4>双表对照</h4>
+      <p>二维 DP 与一维滚动数组同屏同步，用箭头标出「选 / 不选」的依赖来源，一眼看懂状态转移。</p>
+    </div>
+    <div class="feature">
+      <div class="f-ico">🎚️</div>
+      <h4>可调可控</h4>
+      <p>自由编辑物品、容量，调速播放，或用快捷键步进。完全本地运行，无需服务器。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 页脚 ===================== -->
+<footer>
+  <div>毕老师 · 算法可视化 — 让算法变得看得见、学得会</div>
+  <div style="margin-top:6px">© 2026 毕老师算法可视化 · 教学用途</div>
+</footer>
+
+<!-- ===================== 「敬请期待」Modal ===================== -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <div class="m-ico">🚧</div>
+    <h3 id="modalTitle">该模块正在开发中</h3>
+    <p id="modalText">这一模块的内容还在准备中，敬请关注后续更新。<br>你可以先体验已上线的「动态规划」模块。</p>
+    <button class="btn btn-primary" id="modalClose">知道了</button>
+  </div>
 </div>
 
 <script>
 /* ============================================================
-   完全背包可视化教学 —— 逻辑核心
-   思路：先把整个 DP 过程跑一遍，把每一步的「快照」存成数组，
-        之后播放/步进都只是回放快照，逻辑稳定、跳转可靠。
+   交互：移动端菜单 + 「敬请期待」弹窗 + 导航高亮
    ============================================================ */
-
-// ---------- 全局状态 ----------
-let state = {
-  mode: 'complete',          // 'complete' | 'zeroOne'
-  items: [                   // 默认数据
-    {w:2, v:3},
-    {w:3, v:4},
-    {w:4, v:5},
-  ],
-  capacity: 7,
-  steps: [],                 // 预计算的步骤序列
-  stepIdx: -1,               // 当前步索引；-1 表示初始状态
-  playing: false,
-  speed: 1,
-  timer: null,
-};
-
-// ---------- DOM 引用 ----------
-const $ = id => document.getElementById(id);
-const table2d = $('table2d');
-const table1d = $('table1d');
-const arrows2d = $('arrows2d').querySelector('svg');
-const arrows1d = $('arrows1d').querySelector('svg');
-const scanBar  = $('scanBar');
-const dirBadge = $('dirBadge');
-const explainBody = $('explainBody');
-const stepCounter = $('stepCounter');
-const progressFill = $('progressFill');
-const f2d = $('f2d'), f1d = $('f1d'), fDir = $('fDir'), fLabel = $('fLabel');
-
-/* ============================================================
-   1. 预计算步骤序列
-   每一步记录：当前物品 i、容量 j、被读取与被写入的依赖、写前写后值、说明文字
-   同时维护二维表与一维表的快照
-   ============================================================ */
-function buildSteps(){
-  const steps = [];
-  const n = state.items.length;
-  const W = state.capacity;
-  const isC = state.mode === 'complete';
-
-  // 二维 dp（含第 0 行/列占位）
-  const dp2 = Array.from({length:n+1}, ()=>new Array(W+1).fill(0));
-  // 一维 dp（滚动数组）
-  const dp1 = new Array(W+1).fill(0);
-
-  // 初始快照（全 0）
-  steps.push({
-    type:'init',
-    dp2: snapshot(dp2),
-    dp1: [...dp1],
-    explain:`初始化：二维 <span class="mono">dp[0..${n}][0..${W}]</span> 与一维 <span class="mono">dp[0..${W}]</span> 全部为 0。物品编号从 1 开始。`
+(function(){
+  // 移动端菜单展开
+  const navToggle = document.getElementById('navToggle');
+  const navLinks  = document.getElementById('navLinks');
+  navToggle.addEventListener('click',()=>navLinks.classList.toggle('open'));
+  // 点击菜单项后收起
+  navLinks.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click',()=>navLinks.classList.remove('open'));
   });
 
-  for(let i=1;i<=n;i++){
-    const item = state.items[i-1];
-    const w = item.w, v = item.v;
+  // 「敬请期待」弹窗
+  const mask = document.getElementById('modalMask');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalText  = document.getElementById('modalText');
+  function openSoon(name){
+    if(name){
+      modalTitle.textContent = name + ' · 即将上线';
+      modalText.innerHTML = '「'+name+'」模块正在开发中，敬请关注后续更新。<br>你可以先体验已上线的「动态规划」模块。';
+    }
+    mask.classList.add('show');
+  }
+  function closeModal(){ mask.classList.remove('show'); }
+  document.getElementById('modalClose').addEventListener('click',closeModal);
+  mask.addEventListener('click',e=>{ if(e.target===mask) closeModal(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 
-    // 跳过容量放不下的部分，但仍记录处理过程
-    // 内层 j 的方向是核心区别：
-    //   完全背包：正序 j=0..W  （读 dp[j-w] 已是本物品更新后的值 → 可重复选）
-    //   0/1 背包：逆序 j=W..0  （读 dp[j-w] 仍是上一物品的值 → 每物只选一次）
-    const jOrder = isC
-      ? Array.from({length:W+1},(_,j)=>j)
-      : Array.from({length:W+1},(_,k)=>W-k);
-
-    // 物品开始
-    steps.push({
-      type:'itemStart', i, w, v,
-      dp2: snapshot(dp2),
-      dp1: [...dp1],
-      explain:`<b>物品 ${i}</b>（重量 <span class="mono">w=${w}</span>，价值 <span class="mono">v=${v}</span>）开始处理。一维内层 j 将按 <b>${isC?'正序 0→'+W+'（←→）':'逆序 '+W+'→0（→←）'}</b> 遍历。`
+  // 所有标记 data-soon 的元素，拦截默认行为并弹窗
+  // card-link 带模块名（取同卡片 h3）；导航项用其文字
+  document.querySelectorAll('[data-soon]').forEach(el=>{
+    el.addEventListener('click',e=>{
+      e.preventDefault();
+      let name = el.textContent.trim().replace(/→$/,'').trim();
+      // 卡片按钮：找同卡片标题
+      if(el.classList.contains('card-link')){
+        const card = el.closest('.card');
+        if(card){ const h = card.querySelector('h3'); if(h) name = h.textContent.trim(); }
+      }
+      openSoon(name);
     });
-
-    for(const j of jOrder){
-      if(j < w){
-        // 放不下：dp 值不变（二维=继承上一行，一维=本来就继承）
-        dp2[i][j] = dp2[i-1][j];
-        // 一维：dp1[j] 不变
-        steps.push({
-          type:'step', i, j, w, v,
-          skip: {i:i-1, j},            // 不选依赖：上一行同列
-          pick: null,                   // 放不下，没有「选」
-          before2: dp2[i-1][j], after2: dp2[i][j],
-          before1: dp1[j], after1: dp1[j],
-          decided: 'cant',
-          dp2: snapshot(dp2),
-          dp1: [...dp1],
-          explain:`物品 ${i}，容量 <span class="mono">j=${j}</span>：放不下（<span class="mono">${j} < w=${w}</span>），直接继承，<span class="mono">dp[${i}][${j}] = dp[${i-1}][${j}] = ${dp2[i][j]}</span>。`
-        });
-        continue;
-      }
-
-      // 二维依赖
-      //   完全：选 = dp[i][j-w]   （同行左侧，可能已含本物品）
-      //   0/1  ：选 = dp[i-1][j-w]（左上，上一物品的值）
-      const pick2_i = isC ? i : i-1;
-      const pick2_j = j - w;
-      const skip2_val = dp2[i-1][j];
-      const pick2_val = dp2[pick2_i][pick2_j];
-      const new2 = Math.max(skip2_val, pick2_val + v);
-      dp2[i][j] = new2;
-
-      // 一维依赖（同一时刻更新）
-      //   无论哪种模式，一维读的都是 dp1[j-w]，但因为 j 的遍历方向不同：
-      //     完全(正序)：dp1[j-w] 刚被本物品更新 → 等价二维的 dp[i][j-w]
-      //     0/1(逆序)：dp1[j-w] 还是上一物品的值 → 等价二维的 dp[i-1][j-w]
-      const pick1_val = dp1[j-w];
-      const skip1_val = dp1[j];        // 不选 = 保持当前值（一维里继承就是不动）
-      const new1 = Math.max(skip1_val, pick1_val + v);
-      const before1 = dp1[j];
-      dp1[j] = new1;
-
-      // 决策结果（以二维为准，二者一致）
-      const chosePick = (pick2_val + v) >= skip2_val;
-
-      // 标注依赖坐标（供高亮）
-      // 二维
-      const dep2 = {
-        pick: {i:pick2_i, j:pick2_j},
-        skip: {i:i-1, j},
-      };
-      // 一维：不选依赖在一维里其实就是「当前格保持」，但我们仍高亮「选」依赖 dp[j-w]
-      const dep1 = {
-        pick: {j:j-w},
-        // skip 在一维不指向别处，留 null（当前格自身参与 max）
-      };
-
-      steps.push({
-        type:'step', i, j, w, v,
-        dep2, dep1,
-        before2: skip2_val, after2: new2,
-        before1, after1: new1,
-        pick2_val, skip2_val,
-        pick1_val, skip1_val,
-        decided: chosePick ? 'pick' : 'skip',
-        dp2: snapshot(dp2),
-        dp1: [...dp1],
-        explain:
-          `<b>物品 ${i}</b>，容量 <span class="mono">j=${j}</span>：<br>` +
-          (isC
-            ? `<span class="pick-c">选</span>：读同行左侧 <span class="mono">dp[${i}][${j-w}] = ${pick2_val}</span>，+${v} = <span class="mono">${pick2_val+v}</span><br>`
-            : `<span class="pick-c">选</span>：读左上 <span class="mono">dp[${i-1}][${j-w}] = ${pick2_val}</span>，+${v} = <span class="mono">${pick2_val+v}</span><br>`) +
-          `<span class="skip-c">不选</span>：读正上方 <span class="mono">dp[${i-1}][${j}] = ${skip2_val}</span><br>` +
-          `取较大者 → <span class="mono">dp[${i}][${j}] = ${new2}</span> ` +
-          (chosePick ? `<span class="chosen">（选，可${isC?'重复':''}使用本物品）</span>` : `<span class="rejected">（不选）</span>`) +
-          `<br><span style="color:var(--text-mute);font-size:12px">一维同步：dp[${j}] 由 ${before1} → <span class="mono">${new1}</span></span>`
-      });
-    }
-  }
-
-  // 结束
-  steps.push({
-    type:'done',
-    dp2: snapshot(dp2),
-    dp1: [...dp1],
-    answer2: dp2[n][W],
-    answer1: dp1[W],
-    explain:`🎉 全部完成！最大价值 = <span class="mono">${dp1[W]}</span>。二维 <span class="mono">dp[${n}][${W}]</span> 与一维 <span class="mono">dp[${W}]</span> 结果一致，验证了一维滚动数组的正确性。`
   });
 
-  state.steps = steps;
-  state.stepIdx = -1;
-}
-
-// 深拷贝二维表快照
-function snapshot(dp2){
-  return dp2.map(row=>[...row]);
-}
-
-/* ============================================================
-   2. 渲染表格结构（随物品/容量变化时重建）
-   ============================================================ */
-function buildTables(){
-  const n = state.items.length;
-  const W = state.capacity;
-  const isC = state.mode === 'complete';
-
-  // ---- 二维表 ----
-  let h = '<thead><tr><th class="row-h">i ╲ j</th>';
-  for(let j=0;j<=W;j++) h += `<th>${j}</th>`;
-  h += '</tr></thead><tbody>';
-  // i=0..n
-  for(let i=0;i<=n;i++){
-    h += `<tr><th class="row-h">i=${i}${i>0?'<br><span style="font-size:9px;color:var(--text-mute)">物品'+i+'</span>':''}</th>`;
-    for(let j=0;j<=W;j++){
-      h += `<td id="c2-${i}-${j}" class="dim">0</td>`;
-    }
-    h += '</tr>';
-  }
-  h += '</tbody>';
-  table2d.innerHTML = h;
-
-  // ---- 一维表 ----
-  let h1 = '<thead><tr>';
-  for(let j=0;j<=W;j++) h1 += `<th>j=${j}</th>`;
-  h1 += '</tr></thead><tbody><tr>';
-  for(let j=0;j<=W;j++){
-    h1 += `<td id="c1-${j}" class="dim">0</td>`;
-  }
-  h1 += '</tr></tbody>';
-  table1d.innerHTML = h1;
-
-  // ---- 方向标签 ----
-  dirBadge.innerHTML = isC
-    ? '<span class="badge-dir forward">j 正序 0 → '+W+'</span>'
-    : '<span class="badge-dir backward">j 逆序 '+W+' → 0</span>';
-
-  // ---- 公式 ----
-  if(isC){
-    fLabel.textContent = '二维状态转移（完全背包）';
-    f2d.innerHTML = 'dp[<span class="h-cur">i</span>][<span class="h-cur">j</span>] = max( dp[i-1][j] , <span class="h-pick">dp[i][j-w]</span> + v )';
-    f1d.innerHTML = 'dp[<span class="h-cur">j</span>] = max( dp[j] , <span class="h-pick">dp[j-w]</span> + v )';
-    fDir.innerHTML = '<span style="color:#fbbf24">j 正序 0 → W</span>（使 dp[j-w] 为本物品已更新的新值 → 可重复选）';
-  }else{
-    fLabel.textContent = '二维状态转移（0/1 背包）';
-    f2d.innerHTML = 'dp[<span class="h-cur">i</span>][<span class="h-cur">j</span>] = max( dp[i-1][j] , <span class="h-pick">dp[i-1][j-w]</span> + v )';
-    f1d.innerHTML = 'dp[<span class="h-cur">j</span>] = max( dp[j] , <span class="h-pick">dp[j-w]</span> + v )';
-    fDir.innerHTML = '<span style="color:#7dd3fc">j 逆序 W → 0</span>（保证 dp[j-w] 仍是上一物品的旧值 → 每物只选一次）';
-  }
-}
-
-/* ============================================================
-   3. 渲染某一步（核心：把快照画到表上 + 高亮依赖）
-   ============================================================ */
-function renderStep(){
-  const steps = state.steps;
-  const idx = state.stepIdx;
-  const cur = idx >= 0 ? steps[idx] : null;
-  const n = state.items.length;
-  const W = state.capacity;
-
-  // 清空所有高亮 & 重置值
-  for(let i=0;i<=n;i++){
-    for(let j=0;j<=W;j++){
-      const cell = $('c2-'+i+'-'+j);
-      if(cell){
-        cell.className='dim';
-        cell.textContent='0';
-      }
-    }
-  }
-  for(let j=0;j<=W;j++){
-    const cell = $('c1-'+j);
-    if(cell){cell.className='dim';cell.textContent='0';}
-  }
-  clearArrows();
-  scanBar.style.display='none';
-
-  if(!cur){
-    explainBody.innerHTML = '点击「播放」或「下一步」开始演示。可切换上方模式，对比完全背包与 0/1 背包的差异。';
-    stepCounter.textContent = '准备 / ' + (steps.length-1) + ' 步';
-    progressFill.style.width = '0%';
-    return;
-  }
-
-  // 画快照值
-  for(let i=0;i<=n;i++){
-    for(let j=0;j<=W;j++){
-      const cell = $('c2-'+i+'-'+j);
-      if(cell){
-        const val = cur.dp2[i][j];
-        cell.textContent = val;
-        if(val!==0) cell.classList.remove('dim');
-      }
-    }
-  }
-  for(let j=0;j<=W;j++){
-    const cell = $('c1-'+j);
-    if(cell){
-      const val = cur.dp1[j];
-      cell.textContent = val;
-      if(val!==0) cell.classList.remove('dim');
-    }
-  }
-
-  // 高亮当前步
-  if(cur.type==='step'){
-    // 二维：当前格、选依赖、不选依赖
-    const ci = cur.i, cj = cur.j;
-    const curCell2 = $('c2-'+ci+'-'+cj);
-    if(curCell2){
-      curCell2.classList.add('cur');
-      curCell2.textContent = cur.after2;
-    }
-    if(cur.dep2 && cur.dep2.pick){
-      const p = cur.dep2.pick;
-      const pc = $('c2-'+p.i+'-'+p.j);
-      if(pc && !(p.i===ci&&p.j===cj)) pc.classList.add('pick');
-    }
-    if(cur.dep2 && cur.dep2.skip){
-      const s = cur.dep2.skip;
-      const sc = $('c2-'+s.i+'-'+s.j);
-      if(sc && !(s.i===ci&&s.j===cj)) sc.classList.add('skip');
-    }
-
-    // 一维：当前格、选依赖
-    const curCell1 = $('c1-'+cj);
-    if(curCell1){
-      curCell1.classList.add('cur');
-      curCell1.textContent = cur.after1;
-    }
-    if(cur.dep1 && cur.dep1.pick){
-      const pc = $('c1-'+cur.dep1.pick.j);
-      if(pc && cur.dep1.pick.j!==cj) pc.classList.add('pick');
-    }
-
-    // 移动扫描条到当前 j（一维表）
-    moveScanBar(cj);
-
-    // 画箭头
-    drawArrows(cur);
-  }else if(cur.type==='done'){
-    // 高亮最终答案
-    const a2 = $('c2-'+n+'-'+W);
-    const a1 = $('c1-'+W);
-    if(a2) a2.classList.add('done');
-    if(a1) a1.classList.add('done');
-  }else if(cur.type==='itemStart' || cur.type==='init'){
-    // 物品开始：高亮对应行
-    if(cur.type==='itemStart'){
-      for(let j=0;j<=W;j++){
-        const c = $('c2-'+cur.i+'-'+j);
-        if(c) c.style.boxShadow='inset 0 0 0 1px rgba(168,85,247,.25)';
-      }
-    }
-  }
-
-  explainBody.innerHTML = cur.explain || '';
-  stepCounter.textContent = (idx) + ' / ' + (steps.length-1) + ' 步';
-  progressFill.style.width = (idx/(steps.length-1)*100)+'%';
-}
-
-// 移动一维扫描条到列 j
-function moveScanBar(j){
-  const cell = $('c1-'+j);
-  if(!cell){scanBar.style.display='none';return;}
-  const wrap = $('scroll1d');
-  const cellRect = cell.getBoundingClientRect();
-  const wrapRect = wrap.getBoundingClientRect();
-  const left = (cellRect.left - wrapRect.left) + wrap.scrollLeft - 3;
-  scanBar.style.left = left + 'px';
-  scanBar.style.width = (cellRect.width + 6) + 'px';
-  scanBar.style.display = 'block';
-}
-
-// 画箭头：依赖 → 当前格
-function drawArrows(cur){
-  if(cur.type!=='step') return;
-  // 二维
-  if(cur.dep2){
-    const target = $('c2-'+cur.i+'-'+cur.j);
-    if(target){
-      if(cur.dep2.pick){
-        const p = cur.dep2.pick;
-        if(!(p.i===cur.i&&p.j===cur.j))
-          addArrow(arrows2d, $('c2-'+p.i+'-'+p.j), target, 'var(--pick)');
-      }
-      if(cur.dep2.skip){
-        const s = cur.dep2.skip;
-        if(!(s.i===cur.i&&s.j===cur.j))
-          addArrow(arrows2d, $('c2-'+s.i+'-'+s.j), target, 'var(--skip)');
-      }
-    }
-  }
-  // 一维
-  if(cur.dep1 && cur.dep1.pick){
-    const target = $('c1-'+cur.j);
-    const src = $('c1-'+cur.dep1.pick.j);
-    if(target && src && cur.dep1.pick.j!==cur.j)
-      addArrow(arrows1d, src, target, 'var(--pick)');
-  }
-}
-
-function addArrow(svgEl, srcEl, dstEl, color){
-  if(!srcEl||!dstEl) return;
-  const card = svgEl.parentElement;
-  const cardRect = card.getBoundingClientRect();
-  const s = srcEl.getBoundingClientRect();
-  const d = dstEl.getBoundingClientRect();
-  const x1 = s.left+s.width/2 - cardRect.left;
-  const y1 = s.top+s.height/2 - cardRect.top;
-  const x2 = d.left+d.width/2 - cardRect.left;
-  const y2 = d.top+d.height/2 - cardRect.top;
-  // 画一条带圆点的线
-  const ns='http://www.w3.org/2000/svg';
-  const line=document.createElementNS(ns,'line');
-  line.setAttribute('x1',x1);line.setAttribute('y1',y1);
-  line.setAttribute('x2',x2);line.setAttribute('y2',y2);
-  line.setAttribute('stroke',color);line.setAttribute('stroke-width',2);
-  line.setAttribute('stroke-dasharray','4 3');line.setAttribute('opacity','.8');
-  // 终点小圆
-  const dot=document.createElementNS(ns,'circle');
-  dot.setAttribute('cx',x2);dot.setAttribute('cy',y2);dot.setAttribute('r',3);
-  dot.setAttribute('fill',color);
-  svgEl.appendChild(line);svgEl.appendChild(dot);
-}
-function clearArrows(){
-  arrows2d.innerHTML='';arrows1d.innerHTML='';
-}
-
-/* ============================================================
-   4. 播放控制
-   ============================================================ */
-function next(){ if(state.stepIdx < state.steps.length-1){state.stepIdx++;renderStep();} else pause(); }
-function prev(){ if(state.stepIdx >= 0){state.stepIdx--;renderStep();} }
-function play(){
-  if(state.stepIdx>=state.steps.length-1) state.stepIdx=-1; // 到头则重来
-  state.playing=true;
-  $('btnPlay').textContent='⏸ 暂停';
-  scheduleNext();
-}
-function pause(){
-  state.playing=false;
-  if(state.timer){clearTimeout(state.timer);state.timer=null;}
-  $('btnPlay').textContent='▶ 播放';
-}
-function scheduleNext(){
-  if(!state.playing) return;
-  const interval = 1100 / state.speed;
-  state.timer = setTimeout(()=>{
-    if(state.stepIdx>=state.steps.length-1){pause();return;}
-    next();
-    scheduleNext();
-  }, interval);
-}
-function reset(){
-  pause();
-  state.stepIdx=-1;
-  renderStep();
-}
-
-/* ============================================================
-   5. 数据编辑
-   ============================================================ */
-function renderItemsList(){
-  const list = $('itemsList');
-  list.innerHTML='';
-  state.items.forEach((it,idx)=>{
-    const row=document.createElement('div');
-    row.className='item-row';
-    row.innerHTML=`
-      <span class="item-idx">#${idx+1}</span>
-      <input type="number" class="item-input" data-idx="${idx}" data-field="w" value="${it.w}" min="1" max="20">
-      <input type="number" class="item-input" data-idx="${idx}" data-field="v" value="${it.v}" min="1" max="99">
-      <button class="item-del" data-idx="${idx}" title="删除">×</button>
-    `;
-    list.appendChild(row);
+  // 导航高亮：滚动到对应区域（这里只处理首页锚点）
+  navLinks.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click',()=>{
+      navLinks.querySelectorAll('a').forEach(x=>x.classList.remove('active'));
+      a.classList.add('active');
+    });
   });
-}
-function rebuild(){
-  // 校验数据
-  state.items = state.items.map(it=>({
-    w: Math.max(1, parseInt(it.w)||1),
-    v: Math.max(1, parseInt(it.v)||1),
-  }));
-  state.capacity = Math.max(1, Math.min(20, parseInt(state.capacity)||1));
-  pause();
-  buildTables();
-  buildSteps();
-  renderStep();
-}
-
-/* ============================================================
-   6. 事件绑定
-   ============================================================ */
-// 模式切换
-document.querySelectorAll('.mode-tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    if(tab.classList.contains('active'))return;
-    document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    state.mode = tab.dataset.mode;
-    rebuild();
-  });
-});
-
-// 播放按钮
-$('btnPlay').addEventListener('click',()=>{ state.playing ? pause() : play(); });
-$('btnNext').addEventListener('click',()=>{pause();next();});
-$('btnPrev').addEventListener('click',()=>{pause();prev();});
-$('btnReset').addEventListener('click',reset);
-$('speed').addEventListener('input',e=>{
-  state.speed = parseFloat(e.target.value);
-  $('speedVal').textContent = state.speed.toFixed(1)+'×';
-  if(state.playing){ clearTimeout(state.timer); scheduleNext(); }
-});
-
-// 物品编辑（事件委托）
-$('itemsList').addEventListener('input',e=>{
-  const t=e.target;
-  if(t.classList.contains('item-input')){
-    const idx=+t.dataset.idx, field=t.dataset.field;
-    state.items[idx][field]=parseInt(t.value)||0;
-  }
-});
-$('itemsList').addEventListener('change',rebuild);
-$('itemsList').addEventListener('click',e=>{
-  const b=e.target.closest('.item-del');
-  if(b){
-    const idx=+b.dataset.idx;
-    if(state.items.length<=1) return;
-    state.items.splice(idx,1);
-    renderItemsList();
-    rebuild();
-  }
-});
-$('btnAddItem').addEventListener('click',()=>{
-  if(state.items.length>=8) return;
-  state.items.push({w:1,v:1});
-  renderItemsList();
-  rebuild();
-});
-
-// 容量
-$('capacityInput').addEventListener('change',e=>{
-  state.capacity=parseInt(e.target.value)||1;
-  rebuild();
-});
-
-// 键盘快捷键
-document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT') return;
-  if(e.key==='ArrowRight'){e.preventDefault();pause();next();}
-  else if(e.key==='ArrowLeft'){e.preventDefault();pause();prev();}
-  else if(e.key===' '){e.preventDefault();state.playing?pause():play();}
-  else if(e.key==='r'||e.key==='R'){reset();}
-  else if(e.key==='m'||e.key==='M'){
-    const next_mode = state.mode==='complete'?'zeroOne':'complete';
-    document.querySelector(`.mode-tab[data-mode="${next_mode}"]`).click();
-  }
-});
-
-// 窗口缩放时重画箭头与扫描条
-window.addEventListener('resize',()=>{ if(state.stepIdx>=0) renderStep(); });
-
-/* ============================================================
-   启动
-   ============================================================ */
-renderItemsList();
-buildTables();
-buildSteps();
-renderStep();
+})();
 </script>
 </body>
 </html>

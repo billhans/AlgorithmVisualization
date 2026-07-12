@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>完全背包 · 可视化教学 — 毕老师算法可视化</title>
+<link rel="stylesheet" href="knapsack.css">
+</head>
+<body>
+
+<!-- ===================== 返回导航 ===================== -->
+<div class="topnav">
+  <a class="back" href="../index.html">← 返回主页</a>
+  <div class="seg">
+    <a href="01knapsack.html">0/1 背包</a>
+    <a href="complete-knapsack.html" class="active">完全背包</a>
+  </div>
+</div>
+
+<!-- ===================== 顶部 ===================== -->
+<header>
+  <div class="title-row">
+    <h1>🎒 完全背包 · 可视化教学</h1>
+    <span class="subtitle">物品可重复使用 —— 观察「正序遍历」与「同行左侧」依赖如何实现重复选取</span>
+  </div>
+
+  <div class="formula-box">
+    <div class="formula-block">
+      <span class="formula-label" id="fLabel">二维状态转移</span>
+      <span class="formula mono" id="f2d"></span>
+    </div>
+    <div class="formula-block">
+      <span class="formula-label">一维状态转移（滚动数组）</span>
+      <span class="formula mono" id="f1d"></span>
+    </div>
+    <div class="formula-block">
+      <span class="formula-label">内层 j 扫描方向</span>
+      <span class="formula-note mono" id="fDir"></span>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== 主体 ===================== -->
+<div class="layout">
+
+  <!-- 左侧控制面板 -->
+  <aside class="panel">
+    <h3>物品列表 <span style="font-weight:400;color:var(--text-mute);text-transform:none">重 / 值</span></h3>
+    <div class="item-head"><span></span><span>重量 w</span><span>价值 v</span><span></span></div>
+    <div class="items-list" id="itemsList"></div>
+    <button class="btn-add" id="btnAddItem">＋ 添加物品</button>
+
+    <h3>背包容量</h3>
+    <div class="capacity-row">
+      <label>W =</label>
+      <input type="number" class="item-input" id="capacityInput" value="7" min="1" max="20" style="max-width:80px">
+    </div>
+
+    <h3>播放控制</h3>
+    <div class="controls">
+      <button class="btn" id="btnPrev" title="上一步">⏮ 上一步</button>
+      <button class="btn" id="btnNext" title="下一步">下一步 ⏭</button>
+      <button class="btn primary" id="btnPlay">▶ 播放</button>
+      <button class="btn" id="btnReset" title="重置">🔁 重置</button>
+    </div>
+    <div class="speed-row">
+      <span>速度</span>
+      <input type="range" id="speed" min="0.3" max="3" step="0.1" value="1">
+      <span class="speed-val mono" id="speedVal">1.0×</span>
+    </div>
+
+    <h3>颜色图例</h3>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--cur-bg);border:1px solid var(--cur)"></span>当前正在更新的格子</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--pick-bg);border:1px solid var(--pick)"></span>「选」依赖：同行左侧</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--skip-bg);border:1px solid var(--skip)"></span>「不选」依赖：上一行同列</div>
+    </div>
+  </aside>
+
+  <!-- 右侧可视化 -->
+  <main class="viz">
+
+    <div class="tables-wrap">
+      <!-- 二维表 -->
+      <div class="viz-card" id="card2d">
+        <div class="viz-card-head">
+          <div class="viz-card-title">二维 DP 表格 <span class="tag">dp[i][j]</span></div>
+        </div>
+        <div class="table-scroll">
+          <table class="dp-table" id="table2d"></table>
+        </div>
+        <div class="arrow-layer" id="arrows2d"><svg></svg></div>
+      </div>
+
+      <!-- 一维表 -->
+      <div class="viz-card" id="card1d">
+        <div class="viz-card-head">
+          <div class="viz-card-title">一维 DP 表格 <span class="tag">dp[j]</span></div>
+          <div id="dirBadge"></div>
+        </div>
+        <div class="table-scroll scan-bar-wrap" id="scroll1d">
+          <table class="dp-table" id="table1d"></table>
+          <div class="scan-bar" id="scanBar"></div>
+        </div>
+        <div class="arrow-layer" id="arrows1d"><svg></svg></div>
+      </div>
+    </div>
+
+    <!-- 步骤说明 -->
+    <div class="explain">
+      <div class="explain-title">
+        <span>步骤说明</span>
+        <span class="step-counter" id="stepCounter">—</span>
+      </div>
+      <div class="explain-body" id="explainBody">点击「播放」或「下一步」开始演示。</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="shortcuts">
+  快捷键：<kbd>←</kbd> 上一步　<kbd>→</kbd> 下一步　<kbd>空格</kbd> 播放/暂停　<kbd>R</kbd> 重置
+</div>
+
+<script src="knapsack-core.js"></script>
+<script>
+// 固定完全背包模式启动
+initKnapsack({ mode: 'complete' });
+</script>
+</body>
+</html>
