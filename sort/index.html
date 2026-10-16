@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f172a">
+<title>排序算法 · 可视化教学 — 毕老师算法可视化</title>
+<link rel="stylesheet" href="sort.css">
+</head>
+<body>
+<div class="topnav">
+  <a class="back" href="../index.html">← 返回主页</a>
+  <span class="project-name">毕老师 · 算法可视化</span>
+</div>
+
+<header class="page-header">
+  <div class="title-row">
+    <div>
+      <div class="eyebrow">SORTING ALGORITHMS</div>
+      <h1>🔀 排序算法 · 可视化教学</h1>
+      <p class="subtitle">看比较、移动、分区和合并怎样一步步把数组排好。</p>
+    </div>
+    <div class="algorithm-tabs" role="tablist" aria-label="选择排序算法">
+      <button class="algorithm-tab active" data-algorithm="bubble" role="tab" aria-selected="true">冒泡 <small>Bubble</small></button>
+      <button class="algorithm-tab" data-algorithm="selection" role="tab" aria-selected="false">选择 <small>Selection</small></button>
+      <button class="algorithm-tab" data-algorithm="insertion" role="tab" aria-selected="false">插入 <small>Insertion</small></button>
+      <button class="algorithm-tab" data-algorithm="quick" role="tab" aria-selected="false">快速 <small>Quick</small></button>
+      <button class="algorithm-tab" data-algorithm="merge" role="tab" aria-selected="false">归并 <small>Merge</small></button>
+    </div>
+  </div>
+  <div class="algorithm-facts" id="algorithmFacts"></div>
+</header>
+
+<div class="layout">
+  <aside class="panel">
+    <section class="panel-section">
+      <h2>待排序数组</h2>
+      <label class="field-label" for="arrayInput">输入整数，以逗号或空格分隔</label>
+      <textarea id="arrayInput" rows="3" spellcheck="false" aria-describedby="inputHint"></textarea>
+      <div class="input-hint" id="inputHint">支持 2–18 个整数，每个数在 1–99 之间。</div>
+      <div class="input-actions">
+        <button class="btn btn-small" id="btnApply">应用数组</button>
+        <button class="btn btn-small" id="btnRandom">🎲 随机生成</button>
+      </div>
+      <div class="error-message" id="inputError" role="alert"></div>
+    </section>
+    <section class="panel-section">
+      <h2>播放控制</h2>
+      <div class="controls">
+        <button class="btn" id="btnPrev" title="上一步">⏮ 上一步</button>
+        <button class="btn" id="btnNext" title="下一步">下一步 ⏭</button>
+        <button class="btn primary" id="btnPlay">▶ 播放</button>
+        <button class="btn" id="btnReset">🔁 重置</button>
+      </div>
+      <div class="speed-row">
+        <label for="speed">速度</label>
+        <input type="range" id="speed" min="0.5" max="2.5" step="0.1" value="1">
+        <span class="speed-val mono" id="speedVal">1.0×</span>
+      </div>
+    </section>
+    <section class="panel-section">
+      <h2>图例</h2>
+      <div class="legend" id="legend"></div>
+    </section>
+    <section class="panel-section note-box" id="algorithmNote"></section>
+  </aside>
+
+  <main class="viz">
+    <section class="viz-card array-card">
+      <div class="viz-card-head">
+        <div>
+          <h2 class="viz-card-title">数组状态</h2>
+          <p class="viz-card-subtitle" id="arraySubtitle">柱高表示数值大小，位置表示数组下标。</p>
+        </div>
+        <span class="step-counter" id="stepCounter" aria-live="polite">准备中</span>
+      </div>
+      <div class="array-stage" id="arrayStage" role="img" aria-label="数组排序过程可视化"></div>
+      <div class="array-caption" id="arrayCaption"></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </section>
+
+    <section class="viz-card code-card">
+      <div class="viz-card-head">
+        <div>
+          <h2 class="viz-card-title" id="codeTitle">算法步骤</h2>
+          <p class="viz-card-subtitle">高亮行对应当前正在执行的操作。</p>
+        </div>
+      </div>
+      <ol class="code-list" id="codeList"></ol>
+    </section>
+
+    <section class="viz-card metrics-card">
+      <div class="viz-card-head"><h2 class="viz-card-title">运行统计</h2></div>
+      <div class="metrics" id="metrics"></div>
+    </section>
+
+    <section class="viz-card concept-card">
+      <div class="viz-card-head">
+        <div>
+          <h2 class="viz-card-title">复杂度与稳定性：为什么？</h2>
+          <p class="viz-card-subtitle">不只记结论：看输入排列怎样改变比较次数、额外存储和相等元素的顺序。</p>
+        </div>
+      </div>
+      <div class="concept-intro">
+        <strong>先理解 O(·)</strong>
+        <p>复杂度描述数据量 <code>n</code> 增大时，工作量或额外内存怎样增长，不是运行几秒。分析时忽略常数和低阶项；例如 <code>3n²+2n</code> 的主导增长是 <code>n²</code>。</p>
+        <p>“最好 / 最坏”指同一个算法遇到不同排列的输入时，实际执行的操作数不同。空间复杂度通常不把输入数组本身算作额外空间。</p>
+      </div>
+      <div class="concept-grid">
+        <article class="concept-panel">
+          <div class="concept-heading"><span class="concept-icon time-icon">↗</span><div><h3>时间复杂度</h3><p>数一数比较、移动、分区或合并操作</p></div></div>
+          <div class="concept-copy" id="timeExplanation"></div>
+        </article>
+        <article class="concept-panel">
+          <div class="concept-heading"><span class="concept-icon space-icon">▦</span><div><h3>空间复杂度</h3><p>算法为了工作额外占了什么内存</p></div></div>
+          <div class="concept-copy" id="spaceExplanation"></div>
+        </article>
+        <article class="concept-panel stability-panel">
+          <div class="stability-copy">
+            <div class="concept-heading"><span class="concept-icon stable-icon">↔</span><div><h3>稳定性</h3><p>相同键值的元素，排序后是否保留原先先后顺序</p></div></div>
+            <div class="concept-copy" id="stabilityExplanation"></div>
+          </div>
+          <div class="stability-demo">
+            <div class="demo-intro">把重复的 2 看成不同记录：字母表示它原来的身份与先后。</div>
+            <div class="demo-row"><span>排序前</span><div class="records" id="stabilityBefore"></div></div>
+            <div class="demo-row"><span>排序后</span><div class="records" id="stabilityAfter"></div></div>
+            <div class="demo-result" id="stabilityResult"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="explain" aria-live="polite">
+      <div class="explain-title"><span>步骤说明</span><span class="step-counter" id="explainCounter">—</span></div>
+      <div class="explain-body" id="explainBody">点击「下一步」开始，也可以播放完整排序过程。</div>
+    </section>
+  </main>
+</div>
+
+<div class="shortcuts">快捷键：<kbd>←</kbd> 上一步　<kbd>→</kbd> 下一步　<kbd>空格</kbd> 播放 / 暂停　<kbd>R</kbd> 重置</div>
+<script src="sort.js"></script>
+</body>
+</html>
